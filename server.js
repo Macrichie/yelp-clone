@@ -9,7 +9,7 @@ const app = express();
 // environment
 const port = process.env.PORT || 3000;
 
-// middleware
+// middleware to make res.body available for use
 app.use(express.json());
 
 // GET all Restaurants
@@ -49,15 +49,23 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
 });
 
 // Create a new Restaurant
-app.post("/api/v1/restaurants", (req, res) => {
-  console.log(req.body);
+app.post("/api/v1/restaurants", async (req, res) => {
+  //using parameterized query
+  try {
+    const result = await db.query(
+      "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
+      [req.body.name, req.body.location, req.body.price_range]
+    );
+    res.status(201).json({
+      status: "success",
+      data: {
+        restaurant: result.rows[0],
+      },
+    });
+  } catch (error) {
+      console.log(error)
+  }
 
-  res.status(201).json({
-    status: "success",
-    data: {
-      restaurant: "macdonalds",
-    },
-  });
 });
 
 // update a Restaurant
